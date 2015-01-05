@@ -1,11 +1,11 @@
-#include "Distributer.h"
+﻿#include "Distributer.h"
 #include <iostream>
 #include <string>
 using namespace std;
 
 Distributer::Distributer(){
 	ranGen = new Seed();
-	size = 3;
+	size = 2;
 	secretNum = ranGen->getExternalG();
 	coeffs = new mpz_class[this->size];
 	setCoeffs();
@@ -35,11 +35,11 @@ mpz_class Distributer::getShare(mpz_class x){
 	for (int i = 0; i < size; i++){
 		mpz_t temp, pow;
 		mpz_init_set(temp, x.get_mpz_t());
-		mpz_init_set_ui(pow, i);
-		mpz_powm(temp, temp, pow, q.get_mpz_t());
+		mpz_init_set_ui(pow, i+1);
+		mpz_powm(temp, temp, pow, q.get_mpz_t()); // powering kısmı oldu
+		mpz_mul(temp, temp, coeffs[i].get_mpz_t()); // coeff ile çarpıyok
 		sum += mpz_class(temp);
-		sum %= q;
 	}
-	sum -= 1;
+	sum %= q;
 	return sum;
 }

@@ -25,7 +25,7 @@ private:
 	void setShare();
 	mpz_class randomNum(mpz_class upperL);
 	mpz_class getXValue(Keeper list[], int size);
-	mpz_class getLagrangeSum(Keeper list[], Keeper keeper);
+	mpz_class getLagrangeSum(Keeper list[], Keeper keeper, int size);
 
 	Seed *ranGen;
 	mpz_class input, output;

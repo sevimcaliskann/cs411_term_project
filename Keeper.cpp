@@ -66,28 +66,33 @@ mpz_class Keeper::getXValue(Keeper list[], int size){
 	if (size < necessAuth)
 		throw std::invalid_argument("Less authority than expected");
 	for (int i = 0; i < necessAuth; i++){
-		mpz_class pow = getLagrangeSum(list, list[i]);
+		mpz_class pow = getLagrangeSum(list, list[i], size);
 		mpz_t temp;
 		mpz_init_set(temp, list[i].getShare().get_mpz_t());
-		mpz_powm(temp, temp, pow.get_mpz_t(), mpz_class(ranGen->getQ(10)).get_mpz_t());
+		mpz_powm(temp, temp, pow.get_mpz_t(), mpz_class(ranGen->getP(10)).get_mpz_t());
 		result *= mpz_class(temp);
-		result %= mpz_class(ranGen->getQ(10));
+		result %= mpz_class(ranGen->getP(10));
+
+		cout << i << " vote seysi " << mpz_get_str(NULL, 10, result.get_mpz_t()) << endl << endl;
 	}
 	return result;
 }
 
-mpz_class Keeper::getLagrangeSum(Keeper list[], Keeper keeper){
+mpz_class Keeper::getLagrangeSum(Keeper list[], Keeper keeper, int size){
 	mpz_class as = keeper.getShare();
 	mpz_class mult = 1;
 	for (int i = 0; i < necessAuth; i++){
 		if (list[i].getShare() == as)
 			continue;
 		else{
+			mpz_t inverse; mpz_init(inverse);
 			mpz_class temp = list[i].getMV();
-			temp = temp / (temp - keeper.getMV());
+			temp = temp - keeper.getMV();
+			mpz_invert(inverse, temp.get_mpz_t(), mpz_class(ranGen->getQ(10)).get_mpz_t());
+			temp = list[i].getMV() *mpz_class(inverse);
 			mult *= temp;
-			mult %= mpz_class(ranGen->getQ(10));
 		}
 	}
+	mult %= mpz_class(ranGen->getQ(10));
 	return mult;
 }

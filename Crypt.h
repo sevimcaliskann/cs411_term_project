@@ -30,10 +30,11 @@ public:
 	pair<mpz_class, mpz_class> voteTally(map<mpz_class, mpz_class> votes);
 	mpz_class getVoteSUm(const pair<mpz_class, mpz_class> &tall);
 	map<string, mpz_class> returnVoteResults(map<string, mpz_class> candidates, mpz_class sum, int voteSize);
+	mpz_t privateKey;
 protected:
 	void initRandomR(string q, mpz_t &num);
 private:
-	mpz_t privateKey, publicKey, r;
+	mpz_t /*privateKey,*/ publicKey, r;
 	Seed *ranGen;
 };
 
