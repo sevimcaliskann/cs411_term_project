@@ -63,6 +63,34 @@ void voteCheck(Crypt &cy, mpz_class *list, Seed &ranGen){
 	checkVote(cy, list, square, ranGen, make_pair("b", square));
 }
 
+pair<mpz_class, mpz_class> *getList(mpz_class a, mpz_class inv, mpz_class n, mpz_class p){
+	pair<mpz_class, mpz_class> *list = new pair<mpz_class, mpz_class>[n.get_ui() - 1];
+	for (mpz_class i = 1; i < n; i++){
+		mpz_t temp; mpz_init(temp);
+		mpz_powm(temp, a.get_mpz_t(), i.get_mpz_t(), p.get_mpz_t());
+		list[i.get_ui() - 1].first = mpz_class(temp);
+		mpz_powm(temp, inv.get_mpz_t(), i.get_mpz_t(), p.get_mpz_t());
+		list[i.get_ui() - 1].second = mpz_class(temp);
+	}
+	return list;
+}
+
+void babyStep_giantStep(mpz_class *list, mpz_class res, mpz_class p, int listSize){
+	mpz_t temp; mpz_init(temp);
+	mpz_sqrt(temp, p.get_mpz_t());
+	mpz_class n = mpz_class(temp) + 1;
+
+	mpz_class *inv = new mpz_class[listSize];
+	for (int i = 0; i < listSize; i++){
+		mpz_powm(temp, list[i].get_mpz_t(), n.get_mpz_t(), p.get_mpz_t());
+		mpz_invert(temp, list[i].get_mpz_t(), p.get_mpz_t());
+		inv[i] = mpz_class(temp);
+	}
+
+}
+
+
+
 int main(){
 	Seed ranGen;
 	Crypt cy(ranGen);
