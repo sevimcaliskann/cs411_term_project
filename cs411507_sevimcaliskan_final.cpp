@@ -66,7 +66,6 @@ void voteCheck(Crypt &cy, mpz_class *list, Seed &ranGen){
 int main(){
 	Seed ranGen;
 	Crypt cy(ranGen);
-	Distributer dist(ranGen, 2, cy);
 	cout << "generator g: " << ranGen.getG(10) << endl << endl;
 
 	map<string, mpz_class> candidates;
@@ -82,29 +81,23 @@ int main(){
 		v[i] = vote;
 	}
 
-	/*voteGeneration(candidates, cy, v);
-	voteCheck(cy, list, ranGen);*/
-
-	Keeper klist[5] = { Keeper(ranGen, dist, 3), Keeper(ranGen, dist, 3), Keeper(ranGen, dist, 3), Keeper(ranGen, dist, 3), Keeper(ranGen, dist, 3) };
+	/*voteGeneration(candidates, cy, v);*/
+	voteCheck(cy, list, ranGen);
 	map<mpz_class, mpz_class> voteSeries = cy.getVoteSeries(candidates, v, 100);
 	pair<mpz_class, mpz_class> voteTally = cy.voteTally(voteSeries);
+	Distributer dist(ranGen, 2, cy, voteTally.first);
+	Keeper klist[5] = { Keeper(ranGen, dist, 3), Keeper(ranGen, dist, 3), Keeper(ranGen, dist, 3), Keeper(ranGen, dist, 3), Keeper(ranGen, dist, 3) };
 
-	mpz_t proof; mpz_init_set(proof, voteTally.first.get_mpz_t());
-	mpz_powm(proof, proof, cy.privateKey, mpz_class(ranGen.getP(10)).get_mpz_t());
-
-	cout << "The x Value in the ballot " << cy.printMpzClass(mpz_class(proof)) << endl << endl;
 	for (int i = 0; i < 5; i++)
 		klist[i].setBallot(voteTally);
 	mpz_class vSum = klist[0].getSumForExhaustiveSearch(klist, 5);
-	/*cout << "The second vote sum : " << cy.printMpzClass(vSum) << endl<<endl;*/
-	
 
-	//map<string, mpz_class> results = cy.returnVoteResults(candidates, vSum, 100);
-	//map<string, mpz_class>::iterator it = results.begin();
-	//for (int i = 0; i < results.size(); i++){
-	//	cout << "The candidate : " << it->first << " the vote he gets is: " << cy.printMpzClass(it->second) << endl;
-	//	it++;
-	//}
+	map<string, mpz_class> results = cy.returnVoteResults(candidates, vSum, 100);
+	map<string, mpz_class>::iterator it = results.begin();
+	for (int i = 0; i < results.size(); i++){
+		cout << "The candidate : " << it->first << " the vote he gets is: " << cy.printMpzClass(it->second) << endl;
+		it++;
+	}
 
 	cin.get();
 	cin.ignore();

@@ -21,12 +21,8 @@ mpz_class Keeper::getMV(){
 }
 
 void Keeper::setShare(){
-	input = randomNum(mpz_class(ranGen->getQ(10)));
+	input = randomNum(mpz_class(ranGen->getP(10)));
 	output = distributer->getShare(input);
-	mpz_t temp;
-	mpz_init_set(temp, ballot.first.get_mpz_t());
-	mpz_powm(temp, temp, output.get_mpz_t(), mpz_class(ranGen->getQ(10)).get_mpz_t());
-	output = mpz_class(temp);
 }
 
 mpz_class Keeper::getShare(){
@@ -62,37 +58,33 @@ mpz_class Keeper::getSumForExhaustiveSearch(Keeper list[], int size){
 }
 
 mpz_class Keeper::getXValue(Keeper list[], int size){
-	mpz_class result = 1;
+	mpz_class result = 0;
 	if (size < necessAuth)
 		throw std::invalid_argument("Less authority than expected");
 	for (int i = 0; i < necessAuth; i++){
 		mpz_class pow = getLagrangeSum(list, list[i], size);
-		mpz_t temp;
-		mpz_init_set(temp, list[i].getShare().get_mpz_t());
-		mpz_powm(temp, temp, pow.get_mpz_t(), mpz_class(ranGen->getP(10)).get_mpz_t());
-		result *= mpz_class(temp);
+		pow = pow*list[i].getShare();
+		result = result + pow;
 		result %= mpz_class(ranGen->getP(10));
-
-		cout << i << " vote seysi " << mpz_get_str(NULL, 10, result.get_mpz_t()) << endl << endl;
 	}
 	return result;
 }
 
 mpz_class Keeper::getLagrangeSum(Keeper list[], Keeper keeper, int size){
-	mpz_class as = keeper.getShare();
-	mpz_class mult = 1;
-	for (int i = 0; i < necessAuth; i++){
-		if (list[i].getShare() == as)
+	mpz_class temp = keeper.getMV();
+	mpz_class trash = 1;
+	for (int j = 0; j < necessAuth; j++){
+		mpz_class temp2 = list[j].getMV();
+		if (temp == temp2)
 			continue;
 		else{
 			mpz_t inverse; mpz_init(inverse);
-			mpz_class temp = list[i].getMV();
-			temp = temp - keeper.getMV();
-			mpz_invert(inverse, temp.get_mpz_t(), mpz_class(ranGen->getQ(10)).get_mpz_t());
-			temp = list[i].getMV() *mpz_class(inverse);
-			mult *= temp;
+			temp2 = (temp2 - temp);
+			mpz_invert(inverse, temp2.get_mpz_t(), mpz_class(ranGen->getP(10)).get_mpz_t());
+			temp2 = list[j].input *mpz_class(inverse);
+			trash = temp2*trash;
+			trash = trash%mpz_class(ranGen->getP(10));
 		}
 	}
-	mult %= mpz_class(ranGen->getQ(10));
-	return mult;
+	return trash;
 }

@@ -9,11 +9,12 @@
 #include <gmpxx.h>
 #pragma warning(default: 4800)
 using namespace std;
+extern long int getSeed();
 
 class Distributer{
 public:
 	Distributer();
-	Distributer(Seed &ranGen, int size, Crypt &secret);
+	Distributer(Seed &ranGen, int size, Crypt &secret, mpz_class x);
 	mpz_class getShare(mpz_class x);
 	int getSize();
 private:
