@@ -55,6 +55,7 @@ void checkVote(Crypt &cy, mpz_class *list, mpz_class candGen, Seed &ranGen, pair
 }
 
 void voteCheck(Crypt &cy, mpz_class *list, Seed &ranGen){
+	cout << endl<<"Vote Checking, respectively, a,b,c,d, invalid votes: " << endl;
 	checkVote(cy, list, list[0], ranGen, make_pair("a", list[0]));
 	checkVote(cy, list, list[1], ranGen, make_pair("b", list[1]));
 	checkVote(cy, list, list[2], ranGen, make_pair("c", list[2]));
@@ -63,28 +64,49 @@ void voteCheck(Crypt &cy, mpz_class *list, Seed &ranGen){
 	checkVote(cy, list, square, ranGen, make_pair("b", square));
 }
 
-pair<mpz_class, mpz_class> *getList(mpz_class a, mpz_class inv, mpz_class n, mpz_class p){
-	pair<mpz_class, mpz_class> *list = new pair<mpz_class, mpz_class>[n.get_ui() - 1];
-	for (mpz_class i = 1; i < n; i++){
-		mpz_t temp; mpz_init(temp);
-		mpz_powm(temp, a.get_mpz_t(), i.get_mpz_t(), p.get_mpz_t());
-		list[i.get_ui() - 1].first = mpz_class(temp);
-		mpz_powm(temp, inv.get_mpz_t(), i.get_mpz_t(), p.get_mpz_t());
-		list[i.get_ui() - 1].second = mpz_class(temp);
+mpz_class *getList(mpz_class *list, int index1, int index2, mpz_class p,mpz_class res,  bool inv){
+	mpz_t temp; mpz_init(temp);
+	mpz_class *list1 = new mpz_class[100];
+	mpz_class *list2 = new mpz_class[100];
+	for (int i = 0; i < 100; i++){
+		mpz_powm(temp, list[index1].get_mpz_t(), mpz_class(i).get_mpz_t(), p.get_mpz_t());
+		if (inv)
+			mpz_invert(temp, temp, p.get_mpz_t());
+		list1[i] = mpz_class(temp);
+		mpz_powm(temp, list[index2].get_mpz_t(), mpz_class(i).get_mpz_t(), p.get_mpz_t());
+		if (inv)
+			mpz_invert(temp, temp, p.get_mpz_t());
+		list2[i] = mpz_class(temp);
 	}
-	return list;
+	mpz_class *first = new mpz_class[10000]; int c = 0;
+	for (int i = 0; i < 100; i++){
+		for (int j = 0; j < 100; j++){
+			mpz_class a = (list1[i] * list2[j]) % p;
+			if (inv){
+				a *= res;
+				a %= p;
+			}
+			first[c++] = a;
+		}
+	}
+	return first;
 }
 
-void babyStep_giantStep(mpz_class *list, mpz_class res, mpz_class p, int listSize){
-	mpz_t temp; mpz_init(temp);
-	mpz_sqrt(temp, p.get_mpz_t());
-	mpz_class n = mpz_class(temp) + 1;
-
-	mpz_class *inv = new mpz_class[listSize];
-	for (int i = 0; i < listSize; i++){
-		mpz_powm(temp, list[i].get_mpz_t(), n.get_mpz_t(), p.get_mpz_t());
-		mpz_invert(temp, list[i].get_mpz_t(), p.get_mpz_t());
-		inv[i] = mpz_class(temp);
+void babyStep_giantStep(mpz_class *list, mpz_class res, mpz_class p){
+	cout <<endl<< "Baby Step - Giant Step Phase: " << endl;
+	mpz_class *first = getList(list, 0, 1, p, res, false);
+	mpz_class *second = getList(list, 2, 3, p, res, true);
+	for (int i = 0; i < 10000; i++){
+		for (int j = 0; j < 10000; j++){
+			if (second[i] == first[j] && (i!=0 && j!=0)){
+				/*cout << "DONE, i: "<<i<<" j: "<< j << endl;*/
+				cout << "a-Vote: " << j / 100 << endl;
+				cout << "b-Vote: " << j % 100 << endl;
+				cout << "c-Vote: " << i / 100<<endl;
+				cout << "d-Vote: " << i % 100 << endl;
+				return;
+			}
+		}
 	}
 
 }
@@ -120,12 +142,15 @@ int main(){
 		klist[i].setBallot(voteTally);
 	mpz_class vSum = klist[0].getSumForExhaustiveSearch(klist, 5);
 
+	cout << endl<<"Vote Tallying Phase by older exhaustive search: " << endl;
 	map<string, mpz_class> results = cy.returnVoteResults(candidates, vSum, 100);
 	map<string, mpz_class>::iterator it = results.begin();
 	for (int i = 0; i < results.size(); i++){
 		cout << "The candidate : " << it->first << " the vote he gets is: " << cy.printMpzClass(it->second) << endl;
 		it++;
 	}
+
+	babyStep_giantStep(list, vSum, mpz_class(ranGen.getP(10)));
 
 	cin.get();
 	cin.ignore();
